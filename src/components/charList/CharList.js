@@ -5,13 +5,28 @@ import ErrorMessage from '../errorMessage/ErrorMessage'
 
 import './charList.scss'
 
+const setContent = (process, Component, newItemLoading) => {
+    switch (process) {
+        case 'waiting':
+            return <Loader />
+        case 'loading':
+            return newItemLoading ? <Component /> : <Loader />
+        case 'confirmed':
+            return <Component />
+        case 'error':
+            return <ErrorMessage />
+        default:
+            throw new Error('Unexpected process state')
+    }
+}
+
 const CharList = (props) => {
     const [charList, setCharList] = useState([]),
-          [newItemLoading, setNewItemLoading] = useState(false),
-          [offset, setOffset] = useState(210),
-          [charEnded, setCharEnded] = useState(false);
+        [newItemLoading, setNewItemLoading] = useState(false),
+        [offset, setOffset] = useState(210),
+        [charEnded, setCharEnded] = useState(false);
 
-    const {loading, error, getAllCharacters} = useMarvelServices()
+    const { loading, error, getAllCharacters, process } = useMarvelServices()
 
     useEffect(() => {
         onRequest(offset, true)
@@ -25,7 +40,7 @@ const CharList = (props) => {
 
     const onLoaded = (newCharList) => {
         let ended = false
-        if(newCharList.length < 9){
+        if (newCharList.length < 9) {
             ended = true
         }
 
@@ -43,14 +58,14 @@ const CharList = (props) => {
         itemRefs.current[id].focus();
     }
     function renderItems(arr) {
-        const items =  arr.map((item, i) => {
-            let imgStyle = {'objectFit' : 'cover'};
+        const items = arr.map((item, i) => {
+            let imgStyle = { 'objectFit': 'cover' };
             if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
-                imgStyle = {'objectFit' : 'unset'};
+                imgStyle = { 'objectFit': 'unset' };
             }
-            
+
             return (
-                <li 
+                <li
                     className="char__item"
                     tabIndex={0}
                     ref={el => itemRefs.current[i] = el}
@@ -65,8 +80,8 @@ const CharList = (props) => {
                             focusOnItem(i);
                         }
                     }}>
-                        <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
-                        <div className="char__name">{item.name}</div>
+                    <img src={item.thumbnail} alt={item.name} style={imgStyle} />
+                    <div className="char__name">{item.name}</div>
                 </li>
             )
         });
@@ -76,21 +91,14 @@ const CharList = (props) => {
             </ul>
         )
     }
-    
-    const items = renderItems(charList);
-
-    const errorMessage = error ? <ErrorMessage/> : null;
-    const spinner = loading && !newItemLoading ? <Loader/> : null;
 
     return (
         <div className="char__list">
-            {errorMessage}
-            {spinner}
-            {items}
-            <button 
+            {setContent(process, () => renderItems(charList), newItemLoading)}
+            <button
                 className="button button__main button__long"
                 disabled={newItemLoading}
-                style={{'display': charEnded ? 'none' : 'block'}}
+                style={{ 'display': charEnded ? 'none' : 'block' }}
                 onClick={() => onRequest(offset)}>
                 <div className="inner">load more</div>
             </button>
