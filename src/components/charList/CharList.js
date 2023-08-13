@@ -26,7 +26,7 @@ const CharList = (props) => {
         [offset, setOffset] = useState(210),
         [charEnded, setCharEnded] = useState(false);
 
-    const { loading, error, getAllCharacters, process } = useMarvelServices()
+    const { loading, error, getAllCharacters, process, setProcess } = useMarvelServices()
 
     useEffect(() => {
         onRequest(offset, true)
@@ -36,6 +36,7 @@ const CharList = (props) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true)
         getAllCharacters(offset)
             .then(onLoaded)
+            .then(() => setProcess('confirmed'))
     }
 
     const onLoaded = (newCharList) => {
